@@ -1,0 +1,20 @@
+{
+    "servers": [
+        {
+            "id": "vk1mbnt2uy",
+            "secure": false,
+            "name": "newServer",
+            "ip": "188.225.17.123",
+            "login": "cm07522_avremos",
+            "password": "YS3hNsX8"
+        },
+        {
+            "id": "ogcqo7nmmj",
+            "secure": true,
+            "name": "cm07522_avremos",
+            "ip": "128.225.17.123",
+            "login": "cm07522_avremos",
+            "password": "YS3hNsX8"
+        }
+    ]
+}

@@ -1,0 +1,126 @@
+@font-face {
+  font-family: 'icomoon';
+  src:  url('fonts/icomoon.eot?kjmg8e');
+  src:  url('fonts/icomoon.eot?kjmg8e#iefix') format('embedded-opentype'),
+    url('fonts/icomoon.ttf?kjmg8e') format('truetype'),
+    url('fonts/icomoon.woff?kjmg8e') format('woff'),
+    url('fonts/icomoon.svg?kjmg8e#icomoon') format('svg');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
+
+[class^="icon-"], [class*=" icon-"] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'icomoon' !important;
+  speak: never;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-code:before {
+  content: "\e90f";
+}
+.icon-file:before {
+  content: "\e910";
+}
+.icon-image:before {
+  content: "\e911";
+}
+.icon-folder:before {
+  content: "\e912";
+}
+.icon-hide:before {
+  content: "\e913";
+}
+.icon-show:before {
+  content: "\e914";
+}
+.icon-text:before {
+  content: "\e915";
+}
+.icon-blocks:before {
+  content: "\e916";
+}
+.icon-dots:before {
+  content: "\e917";
+}
+.icon-down:before {
+  content: "\e918";
+}
+.icon-download:before {
+  content: "\e919";
+}
+.icon-left:before {
+  content: "\e91a";
+}
+.icon-list:before {
+  content: "\e91b";
+}
+.icon-right:before {
+  content: "\e91c";
+}
+.icon-settings:before {
+  content: "\e91d";
+}
+.icon-time:before {
+  content: "\e91e";
+}
+.icon-up:before {
+  content: "\e91f";
+}
+.icon-upload:before {
+  content: "\e920";
+}
+.icon-add:before {
+  content: "\e900";
+}
+.icon-disk:before {
+  content: "\e901";
+}
+.icon-edit:before {
+  content: "\e902";
+}
+.icon-files:before {
+  content: "\e903";
+}
+.icon-key:before {
+  content: "\e904";
+}
+.icon-label:before {
+  content: "\e905";
+}
+.icon-link:before {
+  content: "\e906";
+}
+.icon-magic:before {
+  content: "\e907";
+}
+.icon-remove:before {
+  content: "\e908";
+}
+.icon-search:before {
+  content: "\e909";
+}
+.icon-server:before {
+  content: "\e90a";
+}
+.icon-servers:before {
+  content: "\e90b";
+}
+.icon-unlink:before {
+  content: "\e90c";
+}
+.icon-user:before {
+  content: "\e90d";
+}
+.icon-web:before {
+  content: "\e90e";
+}

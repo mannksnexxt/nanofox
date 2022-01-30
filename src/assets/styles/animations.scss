@@ -1,0 +1,8 @@
+.extension-enter-from, .extension-leave-to {
+	transform-origin: left;
+	transform: scaleX(0);
+}
+
+.fade-enter-from, .fade-leave-to {
+	opacity: 0;
+}
