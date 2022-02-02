@@ -39,7 +39,7 @@ h1,h2,h3,h4,h5 {
 	&--accent {
 		background: #4b93ff;
 		color: #fff;
-		&:hover {
+		&:hover:not(:disabled) {
 			background: #4f95ff !important;
 			color: #fff !important;
 			box-shadow: 0px 1px 3px rgb(0 0 0 / 21%);
@@ -48,9 +48,13 @@ h1,h2,h3,h4,h5 {
 	&--active {
 		color: #4b93ff;
 	}
-	&:hover, &--active {
+	&:hover:not(:disabled), &--active {
 		background: #f6f6f6;
 		color: #4b93ff;
+	}
+	&:disabled {
+		filter: grayscale(1) opacity(0.3);
+		cursor: default;
 	}
 }
 

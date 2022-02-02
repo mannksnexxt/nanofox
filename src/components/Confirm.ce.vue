@@ -9,11 +9,7 @@
 					<button class="button button--common" @click="close">
 						отмена
 					</button>
-					<button
-						class="button button--common button--accent"
-						@click="confirm"
-						ref="confirm"
-						@keyup.enter="confirm">
+					<button class="button button--common button--accent" @click="confirm">
 						{{ confirm_text }}
 					</button>
 				</div>
@@ -42,16 +38,19 @@ export default {
 	},
 	mounted() {
 		this.$nextTick(() => this.callback());
-		
-		const escapeHandler = (e) => {
-			if (e.key === 'Escape') {
-				this.close();
-			}
-		}
-
-		document.addEventListener('keydown', escapeHandler)
+		document.addEventListener('keydown', this.keydownHandler);
+	},
+	beforeUnmount() {
+		document.removeEventListener('keydown', this.keydownHandler);
 	},
 	methods: {
+		keydownHandler(e) {
+			if (e.key === 'Escape') {
+				this.close();
+			} else if (e.key === 'Enter') {
+				this.confirm();
+			}
+		},
 		open({title, confirm_text}) {
 			let resolve, reject;
 			const promise = new Promise((res, rej) => {
@@ -64,7 +63,6 @@ export default {
 			this.title = title ? title : 'Подтвердите действие';
 			this.is_open = true;
 
-			this.$refs.confirm.focus();
 
 			return promise;
 		},

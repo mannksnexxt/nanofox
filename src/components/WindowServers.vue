@@ -10,7 +10,7 @@
 				<div class="server__info">
 					<div class="server__info-names">
 						<h3 class="server__info-name">{{ server.name }}</h3>
-						<p class="server__info-ip">{{ server.ip }}</p>
+						<p class="server__info-ip">{{ server.host }}</p>
 					</div>
 					
 					<div class="server__info-controls" v-if="current_server.id !== server.id">
@@ -21,7 +21,8 @@
 						</button>
 						<button
 							class="button server__info-button button--icon"
-							@click="$emit('remove-server', server)">
+							@click="$emit('remove-server', server)"
+							@keyup.enter.stop>
 							<i class="icon icon-remove"></i>
 						</button>
 					</div>
@@ -62,7 +63,7 @@ export default {
 	computed: {
 		searched_servers() {
 			return this.servers.filter(server => {
-				return server.name.includes(this.search) || server.ip.includes(this.search);
+				return server.name.includes(this.search) || server.host.includes(this.search);
 			})
 		}
 	}
@@ -106,9 +107,11 @@ export default {
 		}
 		&-name {
 			font-size: 16px;
+			user-select: none;
 		}
 		&-ip {
 			font-size: 12px;
+			user-select: none;
 		}
 		&-controls {
 			display: grid;

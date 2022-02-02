@@ -12,7 +12,7 @@
 			</div>
 
 			<div class="header__options">
-				<ShortInput v-model="search_value" :icon="'search'"/>
+				<ShortInput v-model="search_value" :icon="'search'" v-if="current_tab === 'servers'"/>
 
 				<button class="button button--icon"
 					v-for="control in controls_source"

@@ -8,9 +8,10 @@
     "watch": "vite build --watch",
     "preview": "vite preview",
     "e:dev": "nodemon --watch . --exec electron .",
-		"e:start": "electron ."
+    "e:start": "electron ."
   },
   "dependencies": {
+    "basic-ftp": "^4.6.6",
     "node-json-db": "^1.4.1",
     "vue": "^3.2.25"
   },

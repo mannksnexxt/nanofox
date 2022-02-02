@@ -22,11 +22,11 @@
 				</div>
 				<div class="input__field">
 					<i class="icon icon-web"></i>
-					<input type="text" placeholder="IP" v-model="server_data.ip">
+					<input type="text" placeholder="IP" v-model="server_data.host">
 				</div>
 				<div class="input__field">
 					<i class="icon icon-user"></i>
-					<input type="text" placeholder="Логин" v-model="server_data.login">
+					<input type="text" placeholder="Логин" v-model="server_data.user">
 				</div>
 				<div class="input__field input__field--with-button">
 					<i class="icon icon-key"></i>
@@ -64,7 +64,10 @@
 				<button class="button button--common" @click="close">
 					ОТМЕНА
 				</button>
-				<button class="button button--common button--accent" @click="apply">
+				<button
+					class="button button--common button--accent"
+					@click="apply"
+					:disabled="!can_apply">
 					OK
 				</button>
 			</div>
@@ -88,8 +91,8 @@ export default {
 			server_data: {
 				secure: false,
 				name: '',
-				ip: '',
-				login: '',
+				host: '',
+				user: '',
 				password: ''
 			},
 			password_visible: false,
@@ -101,8 +104,8 @@ export default {
 		if (this.edit) {
 			this.server_data.secure = this.editing_server.secure;
 			this.server_data.name = this.editing_server.name;
-			this.server_data.ip = this.editing_server.ip;
-			this.server_data.login = this.editing_server.login;
+			this.server_data.host = this.editing_server.host;
+			this.server_data.user = this.editing_server.user;
 			this.server_data.password = this.editing_server.password;
 		}
 	},
@@ -137,8 +140,8 @@ export default {
 		can_apply() {
 			if (
 				this.server_data.name.trim() &&
-				this.server_data.ip.trim() &&
-				this.server_data.login.trim() &&
+				this.server_data.host.trim() &&
+				this.server_data.user.trim() &&
 				this.server_data.password.trim()
 			) return true;
 			return false;
@@ -156,15 +159,15 @@ export default {
 
 				const secure = ['sftp', 'ssh'].includes(protocol);
 				const pass_ip = details.split(':')[1].trim();
-				const login = details.split(':')[0].trim();
+				const user = details.split(':')[0].trim();
 				const password = pass_ip.split('@')[0].trim();
 				const ip = pass_ip.split('@')[1].trim();
 
 				this.server_data.secure = secure;
-				this.server_data.login = login;
+				this.server_data.user = user;
 				this.server_data.password = password;
-				this.server_data.ip = ip;
-				this.server_data.name = this.server_data.name.trim() ? this.server_data.name : login;
+				this.server_data.host = ip;
+				this.server_data.name = this.server_data.name.trim() ? this.server_data.name : user;
 			}
 		},
 	}

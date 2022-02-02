@@ -6,3 +6,25 @@
 .fade-enter-from, .fade-leave-to {
 	opacity: 0;
 }
+
+.slide-right-enter-from, .slide-right-leave-to {
+	opacity: 0;
+  transform: translateX(100%);
+}
+.slide-right-enter-active {transition: transform 0.2s ease, opacity 0.1s ease;}
+.slide-right-leave-active {transition: transform 0.2s ease, opacity 0.1s ease;}
+
+@keyframes load {
+  0% {
+    transform: rotateX(0deg) rotateZ(360deg);
+  }
+  25% {
+    transform: rotateX(180deg) rotateZ(360deg);
+  }
+  50% {
+    transform: rotateX(180deg) rotateZ(180deg);
+  }
+  75% {
+    transform: rotateX(0deg) rotateZ(180deg);
+  }
+}
