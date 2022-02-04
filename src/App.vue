@@ -4,10 +4,12 @@
 			:tabs="computed_tabs"
 			:current_tab="current_tab"
 			:path="ftp.path"
+			:selected="ftp.selected_files.length"
 			@change-tab="changeTab($event)"
 			@add-server="popup.show = true"
 			@search="header_search = $event"
 			@call-dialog="callDialog"
+			@remove-files="removeFiles"
 		/>
 
 		<div class="main__body">
@@ -24,11 +26,15 @@
 
 			<WindowFiles
 				v-else-if="current_tab === 'files' && this.connected_server"
+				ref="files"
 				:path="ftp.path"
 				:files="files_source"
 				@cd="cd($event)"
+				@cdup="cdup"
 				@deeper="goDeeper($event)"
 				@call-dialog="callDialog"
+				@select="ftp.selected_files = $event"
+				@remove-files="removeFiles"
 			/>
 		</div>
 
@@ -104,28 +110,24 @@ export default {
 			ftp: {
 				connecting_to: undefined,
 				resolve_promise: undefined,
+				selected_files: [],
 				upload: {
 					in_process: false,
 					total: 0,
 					transfered: 0
 				},
 				list: [
-					// {
-					// 	name: 'www',
-					// 	type: 2,
-					// 	nested_files: [
-					// 		{
-					// 			name: 'servers', type: 2,
-					// 			nested_files: [
-					// 				{name: 'index.html', type: 1},
-					// 				{name: 'text.txt', type: 1}
-					// 			]
-					// 		},
-					// 		{name: 'index.html', type: 1},
-					// 		{name: 'text.txt', type: 1}
-					// 	]
-					// },
-					// {name: 'temp', type: 2},
+					{name: 'temp', type: 2},
+					{name: 'www', type: 2},
+					{name: 'serv', type: 2},
+					{name: 'home', type: 2},
+					{name: 'admin', type: 2},
+					{name: 'index.html', type: 1},
+					{name: 'style.css', type: 1},
+					{name: 'temp.txt', type: 1},
+					{name: 'script.js', type: 1},
+					{name: 'uncnown.un', type: 1},
+					{name: 'image.png', type: 1},
 				],
 				path: ''
 			}
@@ -141,8 +143,8 @@ export default {
 		window.api?.receive('uploading', this.upload);
 		window.api?.receive('uploading-progress', this.uploadingProgress);
 		window.api?.receive('uploaded', this.uploaded);
+		window.api?.receive('removed', this.filesRemoved);
 
-		
 	},
 	methods: {
 		setServers(servers) {
@@ -160,9 +162,9 @@ export default {
 			this.loading = true;
 			this.ftp.connecting_to = {...server};
 			
-			// this.connected_server = {...server}; ///////
-			// this.ftp.path = '/'; ///////
-			// this.loading = false; ///////
+			this.connected_server = {...server}; ///////
+			this.ftp.path = '/'; ///////
+			this.loading = false; ///////
 		},
 		onConnected(data) {
 			this.ftp.path = data.pwd;
@@ -217,6 +219,18 @@ export default {
 		cd(path) {
 			window.api?.send('cd', path);
 			this.ftp.path = path;
+		},
+		cdup() {
+			let splited_path = [...this.splited_path];
+			if (splited_path.length === 1) {
+				window.api?.send('cd', '/');
+				this.ftp.path = '/';
+			} else {
+				splited_path.pop();
+				const path = '/' + splited_path.join('/');
+				window.api?.send('cd', path);
+				this.ftp.path = path;
+			}		
 		},
 		resolvePromise() {
 			if (this.ftp.resolve_promise) this.ftp.resolve_promise();
@@ -283,6 +297,37 @@ export default {
 			this.ftp.upload.in_process = false;
 			this.ftp.upload.total = 0;
 			this.ftp.upload.transfered = 0;
+		},
+		async removeFiles() {
+			const confirm = await this.$modal({
+				title: 'Удалить выбранные файлы?',
+				confirm_text: 'УДАЛИТЬ'
+			});
+
+			if (confirm) {
+				const files = this.ftp.selected_files.map(f => ({name: f.name, type: f.type}));
+				window.api?.send('remove-files', files);
+				this.loading = true;
+			}
+		},
+		filesRemoved(files) {
+			this.$refs.files?.unselect();
+			let temp_source = [...this.ftp.list];
+			this.splited_path.forEach((dir, index, arr) => {
+				if (index === arr.length - 1 && dir === '/') {
+					this.ftp.list = this.ftp.list.filter(f => !files.includes(f.name));
+				} else {
+					const temp_item = temp_source.find(f => f.name === dir);
+					if (temp_item) {
+						if (index === arr.length - 1 && temp_item.nested_files) {
+							temp_item.nested_files = temp_item.nested_files.filter(f => !files.includes(f.name));;
+						} else {
+							temp_source = temp_item.nested_files;
+						}
+					}
+				}
+			})
+			this.loading = false;
 		},
 		async removeServer(server) {
 			const confirm = await this.$modal({

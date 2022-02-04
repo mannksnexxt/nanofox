@@ -45,9 +45,9 @@ export default {
 	column-gap: 5px;
 	user-select: none;
 	padding: 1px 7px;
-	&:nth-child(even) {
-		background: #f8f8f8;
-	}
+	// &:nth-child(even) {
+	// 	background: #f8f8f8;
+	// }
 	&__name {
 		color: #2f2f2f;
     font-size: 14px;

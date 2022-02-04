@@ -36,7 +36,8 @@ export default {
 	props: {
 		path: String,
 		tabs: Array,
-		current_tab: String
+		current_tab: String,
+		selected: Number
 	},
 	data() {
 		return {
@@ -50,19 +51,18 @@ export default {
 		},
 		server_tab_controls() {
 			return [
-				{
-					event: 'add-server',
-					icon: 'add'
-				}
+				{ event: 'add-server', icon: 'add' }
 			]
 		},
 		files_tab_controls() {
-			return [
-				{
-					event: 'call-dialog',
-					icon: 'upload'
-				}
-			]
+			const controls = [
+				{ event: 'call-dialog', icon: 'upload' }
+			];
+
+			if (this.selected) {
+				controls.push({ event: 'remove-files', icon: 'remove' });
+			}
+			return controls;
 		},
 	},
 	methods: {
@@ -78,7 +78,6 @@ export default {
 
 <style lang="scss" scoped>
 .header {
-	// padding: 10px 15px;
 	padding: 0px 8px 10px 8px;
 	border-bottom: 1px solid #e8e8e8;
 	background: #fff;

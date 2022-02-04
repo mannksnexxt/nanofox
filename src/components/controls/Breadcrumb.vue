@@ -55,9 +55,9 @@ export default {
 	grid-auto-flow: column;
 	align-items: center;
 	justify-content: start;
-	column-gap: 4px;
+	column-gap: 1px;
 	&__button {
-		padding: 4px 8px;
+		padding: 2px 8px;
 		border: none;
 		color: #b0b0b0;
     background: #f6f6f6;

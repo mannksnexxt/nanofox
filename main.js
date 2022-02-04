@@ -9,7 +9,9 @@ const {
 	cd,
 	cdup,
 	uploadFrom,
-	uploadFromDir
+	uploadFromDir,
+	removeFile,
+	removeDir,
 } = require("./ftp.js");
 
 const path = require("path");
@@ -22,7 +24,6 @@ function createWindow() {
   win = new BrowserWindow({
     width: 800,
     height: 600,
-		// frame: false,
 		titleBarStyle: 'hidden',
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
@@ -99,7 +100,6 @@ ipcMain.on("cd", async (event, args) => {
 	event.reply('dir-changed');
 });
 
-
 ipcMain.on("call-dialog", async (event, args) => {
 	const ftp_path = args;
 	let paths = await dialog.showOpenDialog(win, {
@@ -109,7 +109,6 @@ ipcMain.on("call-dialog", async (event, args) => {
 	if (paths.filePaths && paths.filePaths.length) {
 		client.trackProgress(info => {
 			win.webContents.send("uploading-progress", info);
-			console.log(info);
 		})
 
 		let total_bytes = 0;
@@ -147,6 +146,23 @@ ipcMain.on("call-dialog", async (event, args) => {
 		client.trackProgress();
 	}
 });
+
+ipcMain.on("remove-files", async (event, args) => {
+	const removed_files = [];
+	for (let file of args) {
+		if (file.type === 'dir') {
+			await removeDir(file.name);
+		} else if (file.type === 'file') {
+			await removeFile(file.name);
+		}
+		const splited_name = file.name.split('/');
+		const name = splited_name[splited_name.length - 1];
+		removed_files.push(name);
+	}
+	event.reply('removed', removed_files);
+});
+
+
 
 
 const getAllFiles = function(dirPath, arrayFiles) {

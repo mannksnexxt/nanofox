@@ -47,3 +47,23 @@ exports.uploadFromDir = async (local_path, remote_path) => {
 		return false;
 	}
 };
+
+exports.removeFile = async (remote_path) => {
+	try {
+		await CLIENT.remove(remote_path);
+		return true;
+	} catch (err) {
+		console.error(err);
+		return false;
+	}
+};
+
+exports.removeDir = async (remote_path) => {
+	try {
+		await CLIENT.removeDir(remote_path);
+		return true;
+	} catch (err) {
+		console.error(err);
+		return false;
+	}
+};
