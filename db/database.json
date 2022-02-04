@@ -17,20 +17,12 @@
             "password": "bzxqud6X"
         },
         {
-            "id": "fhnk85j61f",
+            "id": "4iz96xbz3l",
             "secure": false,
-            "name": "stock_taganka(test_err)",
-            "host": "90.156.141.31",
-            "user": "stock_taganka",
-            "password": "EcRctYAFRWnTwdLURsOH"
-        },
-        {
-            "id": "ambef4klvog",
-            "secure": false,
-            "name": "kljl",
-            "host": "lkjl",
-            "user": "lkjlk",
-            "password": "lkjk"
+            "name": "ftp-174389.srv.hoster.ru",
+            "host": "ftp-174389.srv.hoster.ru",
+            "user": "srv174389_mox",
+            "password": "01010101"
         }
     ]
 }

@@ -46,6 +46,9 @@ export default {
 	mounted() {
 		window.addEventListener('keydown', this.onkeydown);
 	},
+	beforeUnmount() {
+		window.removeEventListener('keydown', this.onkeydown);
+	},
 	computed: {
 		files_from_range() {
 			let from_range = [];
@@ -106,14 +109,20 @@ export default {
 		onkeydown(ev) {
 			let key;
 			let is_shift;
+			let is_alt;
 			if (window.event) {
 				key = window.event.keyCode;
 				is_shift = !!window.event.shiftKey;
+				is_alt = !!window.event.altKey;
 			} else {
 				key = ev.which;
 				is_shift = !!ev.shiftKey;
+				is_alt = !!ev.altKey;
 			}
-			if ( is_shift ) {
+			if (is_alt && key === 38) {
+				this.$emit('call-dialog');
+				return;
+			} else if ( is_shift ) {
 				switch (key) {
 					case 16: // ignore shift key
 						break;
@@ -190,6 +199,7 @@ export default {
 	display: grid;
 	grid-template: auto 1fr/1fr;
 	height: 100%;
+	overflow: hidden;
 	&__header {
 		padding: 6px 6px;
     background: #fff;
@@ -198,6 +208,7 @@ export default {
 		background: #fff;
     border: none;
     width: 100%;
+		overflow: scroll;
 	}
 }
 

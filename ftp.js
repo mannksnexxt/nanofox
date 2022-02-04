@@ -1,7 +1,8 @@
 const FTP = require('basic-ftp');
 
 let CLIENT = new FTP.Client();
-CLIENT.ftp.verbose;
+
+exports.client = CLIENT;
 
 exports.connect = async (options) => {
 	try {
@@ -26,3 +27,23 @@ exports.pwd = async () => await CLIENT.pwd();
 exports.list = async () => await CLIENT.list();
 exports.cd = async (path) => await CLIENT.cd(path);
 exports.cdup = async () => await CLIENT.cdup();
+
+exports.uploadFrom = async (local_path, remote_path) => {
+	try {
+		await CLIENT.uploadFrom(local_path, remote_path);
+		return true;
+	} catch (err) {
+		console.error(err);
+		return false;
+	}
+};
+
+exports.uploadFromDir = async (local_path, remote_path) => {
+	try {
+		await CLIENT.uploadFromDir(local_path, remote_path);
+		return true;
+	} catch (err) {
+		console.error(err);
+		return false;
+	}
+};

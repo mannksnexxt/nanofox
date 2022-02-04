@@ -73,6 +73,9 @@ export default {
 <style lang="scss" scoped>
 .servers {
 	padding: 15px 25px;
+	max-height: 100%;
+  height: calc(100vh - 46px);
+	overflow: scroll;
 	&__list {
 		display: grid;
 		grid-auto-flow: row;

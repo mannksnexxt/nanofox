@@ -3,9 +3,11 @@
 		<WindowHeader 
 			:tabs="computed_tabs"
 			:current_tab="current_tab"
+			:path="ftp.path"
 			@change-tab="changeTab($event)"
 			@add-server="popup.show = true"
 			@search="header_search = $event"
+			@call-dialog="callDialog"
 		/>
 
 		<div class="main__body">
@@ -26,6 +28,7 @@
 				:files="files_source"
 				@cd="cd($event)"
 				@deeper="goDeeper($event)"
+				@call-dialog="callDialog"
 			/>
 		</div>
 
@@ -37,6 +40,13 @@
 				@connect="newConnection($event)"
 				@edit-server="editServer($event)"
 				@close="closePopup"
+			/>
+		</transition>
+
+		<transition name="fade">
+			<WindowProgress
+				v-if="current_transfering"
+				:transfer_data="current_transfering"
 			/>
 		</transition>
 
@@ -54,6 +64,7 @@ import WindowFiles from './components/WindowFiles.vue';
 import WindowPopup from './components/WindowPopup.vue';
 import WindowNote from './components/WindowNote.vue';
 import WindowLoading from './components/WindowLoading.vue';
+import WindowProgress from './components/WindowProgress.vue';
 
 import { deepSearch } from './constants.js';
 
@@ -65,7 +76,8 @@ export default {
 		WindowPopup,
 		WindowFiles,
 		WindowNote,
-		WindowLoading
+		WindowLoading,
+		WindowProgress
 	},
 	data() {
 		return {
@@ -92,6 +104,11 @@ export default {
 			ftp: {
 				connecting_to: undefined,
 				resolve_promise: undefined,
+				upload: {
+					in_process: false,
+					total: 0,
+					transfered: 0
+				},
 				list: [
 					// {
 					// 	name: 'www',
@@ -109,12 +126,6 @@ export default {
 					// 	]
 					// },
 					// {name: 'temp', type: 2},
-					// {name: 'home', type: 2},
-					// {name: 'index.html', type: 1},
-					// {name: 'style.css', type: 1},
-					// {name: 'style.txt', type: 1},
-					// {name: 'image.png', type: 1},
-					// {name: 'style.unc', type: 1},
 				],
 				path: ''
 			}
@@ -127,6 +138,9 @@ export default {
 		window.api?.receive('give-list', this.setList);
 		window.api?.receive('server-error', this.errorNote);
 		window.api?.receive('dir-changed', this.resolvePromise);
+		window.api?.receive('uploading', this.upload);
+		window.api?.receive('uploading-progress', this.uploadingProgress);
+		window.api?.receive('uploaded', this.uploaded);
 
 		
 	},
@@ -148,6 +162,7 @@ export default {
 			
 			// this.connected_server = {...server}; ///////
 			// this.ftp.path = '/'; ///////
+			// this.loading = false; ///////
 		},
 		onConnected(data) {
 			this.ftp.path = data.pwd;
@@ -176,6 +191,24 @@ export default {
 						temp_item.nested_files = files;
 					} else {
 						temp_source = temp_item.nested_files;
+					}
+				}
+			})
+			this.loading = false;
+		},
+		appendToList(files) {
+			let temp_source = [...this.ftp.list];
+			this.splited_path.forEach((dir, index, arr) => {
+				if (index === arr.length - 1 && dir === '/') {
+					this.ftp.list = [...this.ftp.list, ...files];
+				} else {
+					const temp_item = temp_source.find(f => f.name === dir);
+					if (temp_item) {
+						if (index === arr.length - 1 && temp_item.nested_files) {
+							temp_item.nested_files = [...temp_item.nested_files, ...files];
+						} else {
+							temp_source = temp_item.nested_files;
+						}
 					}
 				}
 			})
@@ -235,6 +268,22 @@ export default {
 				...payload.data
 			});
 		},
+		callDialog() {
+			window.api?.send('call-dialog', this.ftp.path);
+		},
+		upload(total) {
+			this.ftp.upload.in_process = true;
+			this.ftp.upload.total = total;
+		},
+		uploadingProgress(info) {
+			this.ftp.upload.transfered += info.bytes;
+		},
+		uploaded(files) {
+			this.appendToList(files);
+			this.ftp.upload.in_process = false;
+			this.ftp.upload.total = 0;
+			this.ftp.upload.transfered = 0;
+		},
 		async removeServer(server) {
 			const confirm = await this.$modal({
 				title: 'Удалить данные по этому серверу?',
@@ -248,6 +297,15 @@ export default {
 		}
 	},
 	computed: {
+		current_transfering() {
+			if (this.ftp.upload.in_process) {
+				return {
+					type: 'upload',
+					transfered: this.ftp.upload.transfered,
+					total: this.ftp.upload.total
+				};
+			}
+		},
 		computed_tabs() {
 			let tabs = ['servers'];
 			if (this.connected_server) {
@@ -303,6 +361,7 @@ export default {
   grid-template: auto 1fr/1fr;
 	&__body {
 		background: #fdfdfd;
+		overflow: hidden;
 	}
 }
 </style>

@@ -1,8 +1,20 @@
-const { app, BrowserWindow, ipcMain } = require("electron");
+const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const { getServers, putServer, removeServer, changeServer } = require("./db/index.js");
-const { connect, disconnect, list, pwd, cd, cdup } = require("./ftp.js");
+const {
+	client,
+	connect,
+	disconnect,
+	list,
+	pwd,
+	cd,
+	cdup,
+	uploadFrom,
+	uploadFromDir
+} = require("./ftp.js");
 
 const path = require("path");
+const fs = require("fs").promises;
+const fssync = require("fs");
 
 let win;
 
@@ -10,8 +22,11 @@ function createWindow() {
   win = new BrowserWindow({
     width: 800,
     height: 600,
+		// frame: false,
+		titleBarStyle: 'hidden',
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
+			enableRemoteModule: true
     },
   });
 
@@ -85,3 +100,80 @@ ipcMain.on("cd", async (event, args) => {
 });
 
 
+ipcMain.on("call-dialog", async (event, args) => {
+	const ftp_path = args;
+	let paths = await dialog.showOpenDialog(win, {
+		properties: ['openDirectory', 'openFile', 'multiSelections']
+	});
+
+	if (paths.filePaths && paths.filePaths.length) {
+		client.trackProgress(info => {
+			win.webContents.send("uploading-progress", info);
+			console.log(info);
+		})
+
+		let total_bytes = 0;
+		const converted_paths = await Promise.all(paths.filePaths.map(async path => {
+			const stat = await fs.lstat(path);
+			const is_file = stat.isFile();
+			if (!is_file && !stat.isSymbolicLink()) {
+				total_bytes += getTotalSize(path);
+			} else {
+				total_bytes += stat.size;
+			}
+			return { path, type: is_file ? 'file' : 'dir' };
+		}));
+
+		win.webContents.send("uploading", total_bytes);
+
+		const uploaded_files = [];
+
+		for (let file of converted_paths) {
+			const split_path = file.path.split('/').filter(Boolean);
+			const filename = split_path[split_path.length - 1];
+			const resolved_path = path.resolve(ftp_path, filename);
+			if (file.type === 'file') {
+				await uploadFrom(file.path, resolved_path);
+			} else if (file.type === 'dir') {
+				await uploadFromDir(file.path, resolved_path);
+			}
+			uploaded_files.push({
+				name: filename,
+				type: file.type === 'file' ? 1 : 'dir' ? 2 : 0
+			});
+		}
+		
+		win.webContents.send("uploaded", uploaded_files);
+		client.trackProgress();
+	}
+});
+
+
+const getAllFiles = function(dirPath, arrayFiles) {
+	let files = fssync.readdirSync(dirPath);
+
+	let arrayOfFiles = arrayFiles || [];
+
+	files.forEach(function(file) {
+		if (fssync.statSync(dirPath + "/" + file).isDirectory()) {
+			arrayOfFiles = getAllFiles(dirPath + "/" + file, arrayOfFiles);
+		} else {
+			arrayOfFiles.push(path.resolve(__dirname, dirPath, file));
+		}
+	})
+
+	return arrayOfFiles;
+}
+
+
+const getTotalSize = function(directoryPath) {
+  const arrayOfFiles = getAllFiles(directoryPath);
+
+  let totalSize = 0;
+
+  arrayOfFiles.forEach(function(filePath) {
+		totalSize += fssync.statSync(filePath).size;
+  })
+
+  return totalSize;
+}
