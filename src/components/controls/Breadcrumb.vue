@@ -4,7 +4,10 @@
 			class="breadcrumb__button"
 			v-for="(dir, index) in parsed_path"
 			:key="dir + index"
-			:class="{'breadcrumb__button--active': index === parsed_path.length - 1}"
+			:class="{
+				'breadcrumb__button--active': index === parsed_path.length - 1,
+				'night': night_theme
+			}"
 			:disabled="index === parsed_path.length - 1"
 			@click="select(dir, index)">
 			{{ dir }}
@@ -17,6 +20,7 @@ export default {
 	name: 'breadcrumb',
 	props: {
 		path: String,
+		night_theme: Boolean
 	},
 	data() {
 		return {
@@ -66,6 +70,9 @@ export default {
 			color: #fff;
 			background: #4f95ff;
 			cursor: default;
+			&.night {
+				filter: invert(1) hue-rotate(180deg) !important;
+			}
 		}
 		&:hover:not(&--active) {
 			color: #757575;

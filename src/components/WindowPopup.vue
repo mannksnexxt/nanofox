@@ -67,6 +67,7 @@
 				<button
 					class="button button--common button--accent"
 					@click="apply"
+					:class="{'night': night_theme}"
 					:disabled="!can_apply">
 					OK
 				</button>
@@ -83,7 +84,8 @@ export default {
 	name: 'window-popup',
 	props: {
 		edit: Boolean,
-		editing_server: Object
+		editing_server: Object,
+		night_theme: Boolean
 	},
 	components: { ShortInput },
 	data() {
@@ -226,6 +228,9 @@ export default {
 		&:hover:not(.button--active) {
 			color: inherit;
 		}
+	}
+	.button.night:not(:disabled) {
+		filter: invert(1) hue-rotate(180deg) !important;
 	}
 }
 

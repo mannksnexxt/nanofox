@@ -1,5 +1,11 @@
 const { app, BrowserWindow, ipcMain, dialog } = require("electron");
-const { getServers, putServer, removeServer, changeServer } = require("./db/index.js");
+const {
+	getServers,
+	getTheme,
+	setTheme,
+	putServer,
+	removeServer,
+	changeServer } = require("./db/index.js");
 const {
 	client,
 	connect,
@@ -18,12 +24,15 @@ const path = require("path");
 const fs = require("fs").promises;
 const fssync = require("fs");
 
+let CONFIRMS = new Map();
+
 let win;
 
 function createWindow() {
   win = new BrowserWindow({
     width: 800,
     height: 600,
+		title: 'Nanofox',
 		titleBarStyle: 'hidden',
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
@@ -69,6 +78,15 @@ ipcMain.on("get-servers", (event, args) => {
 	win.webContents.send("give-servers", servers);
 });
 
+ipcMain.on("get-theme", (event, args) => {
+	const theme = getTheme();
+	win.webContents.send("give-theme", theme);
+});
+
+ipcMain.on("change-theme", (event, args) => {
+	setTheme(args);
+});
+
 
 // FTP events
 ipcMain.on("connect", async (event, args) => {
@@ -101,51 +119,44 @@ ipcMain.on("cd", async (event, args) => {
 });
 
 ipcMain.on("call-dialog", async (event, args) => {
-	const ftp_path = args;
+	const ftp_path = args.path;
+	const files = args.files;
+
+	console.log(files);
+
 	let paths = await dialog.showOpenDialog(win, {
 		properties: ['openDirectory', 'openFile', 'multiSelections']
 	});
 
 	if (paths.filePaths && paths.filePaths.length) {
-		client.trackProgress(info => {
-			win.webContents.send("uploading-progress", info);
+		const filenames = paths.filePaths.map(file => {
+			const splited_filename = file.split('/');
+			return splited_filename[splited_filename.length - 1];
 		})
 
-		let total_bytes = 0;
-		const converted_paths = await Promise.all(paths.filePaths.map(async path => {
-			const stat = await fs.lstat(path);
-			const is_file = stat.isFile();
-			if (!is_file && !stat.isSymbolicLink()) {
-				total_bytes += getTotalSize(path);
-			} else {
-				total_bytes += stat.size;
-			}
-			return { path, type: is_file ? 'file' : 'dir' };
-		}));
-
-		win.webContents.send("uploading", total_bytes);
-
-		const uploaded_files = [];
-
-		for (let file of converted_paths) {
-			const split_path = file.path.split('/').filter(Boolean);
-			const filename = split_path[split_path.length - 1];
-			const resolved_path = path.resolve(ftp_path, filename);
-			if (file.type === 'file') {
-				await uploadFrom(file.path, resolved_path);
-			} else if (file.type === 'dir') {
-				await uploadFromDir(file.path, resolved_path);
-			}
-			uploaded_files.push({
-				name: filename,
-				type: file.type === 'file' ? 1 : 'dir' ? 2 : 0
+		if (filenames.some(file => files.includes(file.trim()) )) {
+			CONFIRMS.set('rewrite', {
+				async resolve(val) {
+					if (val === true) {
+						await uploadFiles(paths.filePaths, ftp_path);
+					} else {
+						return;
+					}
+				}
 			});
+
+			event.reply('confirm-rewrite');
+		} else {
+			await uploadFiles(paths.filePaths, ftp_path);
 		}
-		
-		win.webContents.send("uploaded", uploaded_files);
-		client.trackProgress();
 	}
 });
+
+ipcMain.on("resolve-rewrite", async (event, args) => {
+	await CONFIRMS.get('rewrite').resolve(args);
+	CONFIRMS.delete('rewrite');
+});
+
 
 ipcMain.on("remove-files", async (event, args) => {
 	const removed_files = [];
@@ -163,6 +174,46 @@ ipcMain.on("remove-files", async (event, args) => {
 });
 
 
+
+async function uploadFiles(paths, ftp_path) {
+	client.trackProgress(info => {
+		win.webContents.send("uploading-progress", info);
+	})
+
+	let total_bytes = 0;
+	const converted_paths = await Promise.all(paths.map(async path => {
+		const stat = await fs.lstat(path);
+		const is_file = stat.isFile();
+		if (!is_file && !stat.isSymbolicLink()) {
+			total_bytes += getTotalSize(path);
+		} else {
+			total_bytes += stat.size;
+		}
+		return { path, type: is_file ? 'file' : 'dir' };
+	}));
+
+	win.webContents.send("uploading", total_bytes);
+
+	const uploaded_files = [];
+
+	for (let file of converted_paths) {
+		const split_path = file.path.split('/').filter(Boolean);
+		const filename = split_path[split_path.length - 1];
+		const resolved_path = path.resolve(ftp_path, filename);
+		if (file.type === 'file') {
+			await uploadFrom(file.path, resolved_path);
+		} else if (file.type === 'dir') {
+			await uploadFromDir(file.path, resolved_path);
+		}
+		uploaded_files.push({
+			name: filename,
+			type: file.type === 'file' ? 1 : 'dir' ? 2 : 0
+		});
+	}
+
+	win.webContents.send("uploaded", uploaded_files);
+	client.trackProgress();
+}
 
 
 const getAllFiles = function(dirPath, arrayFiles) {

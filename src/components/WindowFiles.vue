@@ -8,6 +8,7 @@
 			</button>
 			<Breadcrumb
 				:path="path"
+				:night_theme="night_theme"
 				@cd="cd($event)"
 			/>
 		</div>
@@ -35,7 +36,8 @@ export default {
 	components: { Breadcrumb, WindowFile },
 	props: {
 		path: String,
-		files: Array
+		files: Array,
+		night_theme: Boolean
 	},
 	data() {
 		return {

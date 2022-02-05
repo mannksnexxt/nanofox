@@ -9,6 +9,15 @@ exports.getServers = () => {
 	return DB.getData(`/servers`);
 };
 
+exports.getTheme = () => {
+	let night = DB.getData(`/night`);
+	return night;
+};
+
+exports.setTheme = (night) => {
+	DB.push(`/night`, night);
+};
+
 exports.putServer = (server) => {
 	try {
 		DB.push(`/servers[]`, server);

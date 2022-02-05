@@ -37,7 +37,8 @@ export default {
 		path: String,
 		tabs: Array,
 		current_tab: String,
-		selected: Number
+		selected: Number,
+		night_theme: Boolean
 	},
 	data() {
 		return {
@@ -51,7 +52,8 @@ export default {
 		},
 		server_tab_controls() {
 			return [
-				{ event: 'add-server', icon: 'add' }
+				{ event: 'add-server', icon: 'add' },
+				{ event: 'change-theme', icon: this.night_theme ? 'moon-fill' : 'moon'},
 			]
 		},
 		files_tab_controls() {

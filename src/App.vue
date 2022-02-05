@@ -1,10 +1,12 @@
 <template>
-	<div class="main">
+	<div class="main" :class="{'night-theme': night_theme}">
 		<WindowHeader 
 			:tabs="computed_tabs"
 			:current_tab="current_tab"
 			:path="ftp.path"
 			:selected="ftp.selected_files.length"
+			:night_theme="night_theme"
+			@change-theme="setTheme"
 			@change-tab="changeTab($event)"
 			@add-server="popup.show = true"
 			@search="header_search = $event"
@@ -29,6 +31,7 @@
 				ref="files"
 				:path="ftp.path"
 				:files="files_source"
+				:night_theme="night_theme"
 				@cd="cd($event)"
 				@cdup="cdup"
 				@deeper="goDeeper($event)"
@@ -43,6 +46,7 @@
 				v-if="popup.show"
 				:edit="popup.edit"
 				:editing_server="popup.editing_server"
+				:night_theme="night_theme"
 				@connect="newConnection($event)"
 				@edit-server="editServer($event)"
 				@close="closePopup"
@@ -87,6 +91,7 @@ export default {
 	},
 	data() {
 		return {
+			night_theme: false,
 			header_search: '',
 			current_tab: 'servers',
 			tabs: ['servers', 'files'],
@@ -135,18 +140,28 @@ export default {
 	},
 	created() {
 		window.api?.send('get-servers');
+		window.api?.send('get-theme');
 		window.api?.receive('give-servers', this.setServers);
+		window.api?.receive('give-theme', this.setTheme);
 		window.api?.receive('connected', this.onConnected);
 		window.api?.receive('give-list', this.setList);
 		window.api?.receive('server-error', this.errorNote);
 		window.api?.receive('dir-changed', this.resolvePromise);
 		window.api?.receive('uploading', this.upload);
+		window.api?.receive('confirm-rewrite', this.confirmRewrite);
 		window.api?.receive('uploading-progress', this.uploadingProgress);
 		window.api?.receive('uploaded', this.uploaded);
 		window.api?.receive('removed', this.filesRemoved);
-
 	},
 	methods: {
+		setTheme(is_night) {
+			if (is_night !== undefined) {
+				this.night_theme = is_night;
+			} else {
+				this.night_theme = !this.night_theme;
+				window.api?.send('change-theme', this.night_theme);
+			}
+		},
 		setServers(servers) {
 			this.servers = servers;
 		},
@@ -283,7 +298,23 @@ export default {
 			});
 		},
 		callDialog() {
-			window.api?.send('call-dialog', this.ftp.path);
+			const current_files = this.current_path_list.map(f => f.name);
+			window.api?.send('call-dialog', {
+				files: current_files,
+				path: this.ftp.path
+			});
+		},
+		async confirmRewrite() {
+			const confirm = await this.$modal({
+				title: 'Перезапиать имеющиеся файлы?',
+				confirm_text: 'ПЕРЕЗАПИСАТЬ'
+			});
+
+			if (confirm) {
+				window.api?.send('resolve-rewrite', true);
+			} else {
+				window.api?.send('resolve-rewrite', false);
+			}
 		},
 		upload(total) {
 			this.ftp.upload.in_process = true;
@@ -293,7 +324,12 @@ export default {
 			this.ftp.upload.transfered += info.bytes;
 		},
 		uploaded(files) {
-			this.appendToList(files);
+			const filtered_files = files.filter(f => {
+				const current_files = this.current_path_list.map(f => f.name);
+				return !current_files.includes(f.name);
+			})
+
+			this.appendToList(filtered_files);
 			this.ftp.upload.in_process = false;
 			this.ftp.upload.total = 0;
 			this.ftp.upload.transfered = 0;
@@ -404,6 +440,7 @@ export default {
 	height: 100%;
 	display: grid;
   grid-template: auto 1fr/1fr;
+	transition: .2s ease-out;
 	&__body {
 		background: #fdfdfd;
 		overflow: hidden;
