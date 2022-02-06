@@ -13,9 +13,11 @@ const {
 	list,
 	pwd,
 	cd,
-	cdup,
 	uploadFrom,
 	uploadFromDir,
+	downloadTo,
+	downloadToDir,
+	rename,
 	removeFile,
 	removeDir,
 } = require("./ftp.js");
@@ -122,8 +124,6 @@ ipcMain.on("call-dialog", async (event, args) => {
 	const ftp_path = args.path;
 	const files = args.files;
 
-	console.log(files);
-
 	let paths = await dialog.showOpenDialog(win, {
 		properties: ['openDirectory', 'openFile', 'multiSelections']
 	});
@@ -150,6 +150,46 @@ ipcMain.on("call-dialog", async (event, args) => {
 			await uploadFiles(paths.filePaths, ftp_path);
 		}
 	}
+});
+
+
+ipcMain.on("call-download-dialog", async (event, args) => {
+	const files = args;
+	const filenames = files.map(file => {
+		const splited_filename = file.path.split('/');
+		return splited_filename[splited_filename.length - 1];
+	})
+
+	let path_to_download = await dialog.showOpenDialog(win, {
+		properties: ['openDirectory']
+	});
+
+	if (path_to_download.filePaths && path_to_download.filePaths.length) {
+		const local_list = fssync.readdirSync(path_to_download.filePaths[0]);
+
+		if (local_list.some(file => filenames.includes(file))) {
+			CONFIRMS.set('rewrite', {
+				async resolve(val) {
+					if (val === true) {
+						await downloadFiles(files, path_to_download.filePaths[0]);
+					} else {
+						return;
+					}
+				}
+			});
+
+			event.reply('confirm-rewrite');
+		} else {
+			await downloadFiles(files, path_to_download.filePaths[0]);
+		}
+	}
+});
+
+ipcMain.on("rename-file", async (event, args) => {
+	const name = args.name;
+	const new_name = args.new_name;
+
+	await rename(name, new_name);
 });
 
 ipcMain.on("resolve-rewrite", async (event, args) => {
@@ -213,6 +253,27 @@ async function uploadFiles(paths, ftp_path) {
 
 	win.webContents.send("uploaded", uploaded_files);
 	client.trackProgress();
+}
+
+async function downloadFiles(remote_paths, local_path) {
+	let downloaded_files = 0;
+	win.webContents.send("downloading", remote_paths.length);
+
+	for (let file of remote_paths) {
+		const split_path = file.path.split('/').filter(Boolean);
+		const filename = split_path[split_path.length - 1];
+		const resolved_path = path.resolve(local_path, filename);
+		if (file.type === 'file') {
+			await downloadTo(resolved_path, file.path);
+		} else if (file.type === 'dir') {
+			await downloadToDir(resolved_path, file.path);
+		}
+
+		downloaded_files += 1;
+		win.webContents.send("downloading-progress", downloaded_files);
+	}
+
+	win.webContents.send("downloaded");
 }
 
 

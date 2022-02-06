@@ -13,6 +13,16 @@ h1,h2,h3,h4,h5 {
 	line-height: 91%;
 }
 
+input {
+	&.transparent {
+		background: #fff;
+		outline: none;
+		border: none;
+		padding: 2px 0;
+		width: 15%;
+	}
+}
+
 .night-theme {
 	filter: invert(.9) hue-rotate(180deg);
 }

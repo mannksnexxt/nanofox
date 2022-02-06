@@ -38,6 +38,36 @@ exports.uploadFrom = async (local_path, remote_path) => {
 	}
 };
 
+exports.downloadTo = async (local_path, remote_path) => {
+	try {
+		await CLIENT.downloadTo(local_path, remote_path);
+		return true;
+	} catch (err) {
+		console.error(err);
+		return false;
+	}
+};
+
+exports.downloadToDir = async (local_path, remote_path) => {
+	try {
+		await CLIENT.downloadToDir(local_path, remote_path);
+		return true;
+	} catch (err) {
+		console.error(err);
+		return false;
+	}
+};
+
+exports.rename = async (path, new_path) => {
+	try {
+		await CLIENT.rename(path, new_path);
+		return true;
+	} catch (err) {
+		console.error(err);
+		return false;
+	}
+};
+
 exports.uploadFromDir = async (local_path, remote_path) => {
 	try {
 		await CLIENT.uploadFromDir(local_path, remote_path);

@@ -60,12 +60,15 @@ export default {
 	align-items: center;
 	justify-content: start;
 	column-gap: 1px;
+	overflow: scroll;
 	&__button {
 		padding: 2px 8px;
 		border: none;
 		color: #b0b0b0;
     background: #f6f6f6;
 		cursor: pointer;
+		white-space: nowrap;
+		user-select: none;
 		&--active {
 			color: #fff;
 			background: #4f95ff;
@@ -83,6 +86,9 @@ export default {
 		&:last-child {
 			border-radius: 4px;
 		}
+	}
+	&::-webkit-scrollbar {
+		display: none;
 	}
 }
 </style>

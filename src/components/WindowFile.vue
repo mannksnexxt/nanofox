@@ -1,10 +1,19 @@
 <template>
 	<li class="file">
-		<i
-			class=""
-			:class="`icon icon-${file_icon}`">
-		</i>
-		<span class="file__name">{{ file.name }}</span>
+		<i class="" :class="`icon icon-${file_icon}`"></i>
+
+		<span v-if="editing_file && editing_file.name !== file.name"
+			class="file__name">{{ file.name }}
+		</span>
+
+		<input
+			type="text"
+			class="transparent"
+			v-else
+			:value="editing_file.new_name"
+			@keypress.enter="$emit('apply-rename')"
+			@input="$emit('update:modelValue', $event.target.value)">
+
 	</li>
 </template>
 
@@ -13,12 +22,16 @@ import { FILE_ICONS } from '../constants.js';
 
 export default {
 	name: 'window-file',
+	events: ['update:modelValue'],
 	props: {
-		file: Object
+		file: Object,
+		modelValue: String,
+		editing_file: Object
 	},
 	data() {
 		return {
-			icons: FILE_ICONS
+			icons: FILE_ICONS,
+			rename_value: ''
 		}
 	},
 	computed: {
@@ -33,7 +46,7 @@ export default {
 			})
 			return icon;
 		}
-	}
+	},
 }
 </script>
 
@@ -45,9 +58,6 @@ export default {
 	column-gap: 5px;
 	user-select: none;
 	padding: 1px 7px;
-	// &:nth-child(even) {
-	// 	background: #f8f8f8;
-	// }
 	&__name {
 		color: #2f2f2f;
     font-size: 14px;

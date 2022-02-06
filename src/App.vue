@@ -12,6 +12,8 @@
 			@search="header_search = $event"
 			@call-dialog="callDialog"
 			@remove-files="removeFiles"
+			@download-files="callDownloadDialog"
+			@rename="rename"
 		/>
 
 		<div class="main__body">
@@ -38,6 +40,8 @@
 				@call-dialog="callDialog"
 				@select="ftp.selected_files = $event"
 				@remove-files="removeFiles"
+				@download-files="callDownloadDialog"
+				@rename-file="renameFile($event)"
 			/>
 		</div>
 
@@ -121,6 +125,11 @@ export default {
 					total: 0,
 					transfered: 0
 				},
+				download: {
+					in_process: false,
+					total: 0,
+					transfered: 0
+				},
 				list: [
 					{name: 'temp', type: 2},
 					{name: 'www', type: 2},
@@ -148,9 +157,12 @@ export default {
 		window.api?.receive('server-error', this.errorNote);
 		window.api?.receive('dir-changed', this.resolvePromise);
 		window.api?.receive('uploading', this.upload);
-		window.api?.receive('confirm-rewrite', this.confirmRewrite);
 		window.api?.receive('uploading-progress', this.uploadingProgress);
 		window.api?.receive('uploaded', this.uploaded);
+		window.api?.receive('downloading', this.download);
+		window.api?.receive('downloading-progress', this.downloadingProgress);
+		window.api?.receive('downloaded', this.downloaded);
+		window.api?.receive('confirm-rewrite', this.confirmRewrite);
 		window.api?.receive('removed', this.filesRemoved);
 	},
 	methods: {
@@ -259,8 +271,6 @@ export default {
 				this.loading = true;
 				if (this.current_path_list === 'unseen') {
 					window.api?.send('get-list');
-
-					// this.setList([{type: 2, name: 'nested'}, {type: 1, name: 'index.html'}]); //////
 				} else {
 					this.loading = false;
 				}
@@ -304,9 +314,15 @@ export default {
 				path: this.ftp.path
 			});
 		},
+		callDownloadDialog() {
+			const files = this.ftp.selected_files.map(f => {
+				return {path: f.name, type: f.type};
+			})
+			window.api?.send('call-download-dialog', files);
+		},
 		async confirmRewrite() {
 			const confirm = await this.$modal({
-				title: 'Перезапиать имеющиеся файлы?',
+				title: 'Перезаписать имеющиеся файлы?',
 				confirm_text: 'ПЕРЕЗАПИСАТЬ'
 			});
 
@@ -333,6 +349,28 @@ export default {
 			this.ftp.upload.in_process = false;
 			this.ftp.upload.total = 0;
 			this.ftp.upload.transfered = 0;
+		},
+		download(total) {
+			this.ftp.download.in_process = true;
+			this.ftp.download.total = total;
+		},
+		downloadingProgress(transfered) {
+			this.ftp.download.transfered = transfered;
+		},
+		downloaded() {
+			this.$refs.files?.unselect();
+			this.ftp.download.in_process = false;
+			this.ftp.download.total = 0;
+			this.ftp.download.transfered = 0;
+		},
+		rename() {
+			this.$refs.files.rename();
+		},
+		renameFile(file) {
+			const name = this.ftp.path + '/' + file.name;
+			const new_name = this.ftp.path + '/' + file.new_name;
+			
+			window.api?.send('rename-file', {name, new_name});
 		},
 		async removeFiles() {
 			const confirm = await this.$modal({
@@ -384,6 +422,12 @@ export default {
 					type: 'upload',
 					transfered: this.ftp.upload.transfered,
 					total: this.ftp.upload.total
+				};
+			} else if (this.ftp.download.in_process) {
+				return {
+					type: 'download',
+					transfered: this.ftp.download.transfered,
+					total: this.ftp.download.total
 				};
 			}
 		},

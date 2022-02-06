@@ -18,6 +18,9 @@
 				:key="file.name + index"
 				:class="{'file--selected': grouped_selection.includes(file.name)}"
 				:file="file"
+				:editing_file="editing_file"
+				v-model="editing_file.new_name"
+				@apply-rename="applyRename"
 				@dblclick="handleDblclick(file)"
 				@click.exact="selectOne(file.name, index)"
 				@click.meta="select(file.name, index)"
@@ -42,8 +45,10 @@ export default {
 	data() {
 		return {
 			selected_files: [],
-			cursor: '',
-			last_key: null,
+			editing_file: {
+				name: '',
+				new_name: ''
+			},
 			selected_range: {
 				from: null,
 				to: null
@@ -92,6 +97,19 @@ export default {
 		}
 	},
 	methods: {
+		applyRename() {
+			if (!this.editing_file.new_name.includes('/') && this.editing_file.new_name !== this.editing_file.name) {
+				this.$emit('rename-file', {
+					name: this.editing_file.name,
+					new_name: this.editing_file.new_name
+				});
+
+				const file = this.files.find(f => f.name == this.editing_file.name);
+				file.name = this.editing_file.new_name;
+
+				this.editing_file.name = this.editing_file.new_name = '';
+			}
+		},
 		cd(path) {
 			this.$emit('cd', path);
 			this.unselect();
@@ -100,6 +118,12 @@ export default {
 			this.selected_files = [];
 			this.selected_range.from = null
 			this.selected_range.to = null;
+			this.editing_file.name = '';
+			this.editing_file.new_name = '';
+		},
+		rename() {
+			this.editing_file.name = this.grouped_selection[0];
+			this.editing_file.new_name = this.grouped_selection[0];
 		},
 		selectOne(filename, index) {
 			this.selected_files = [];
@@ -139,6 +163,9 @@ export default {
 			}
 			if (is_alt && key === 38) {
 				this.$emit('call-dialog');
+				return;
+			} else if (is_alt && key === 40 && this.selected_typed_files) {
+				this.$emit('download-files');
 				return;
 			} else if (is_meta && key === 8 && this.selected_typed_files) {
 				this.$emit('remove-files');

@@ -17,6 +17,7 @@
 
 				<button class="button button--icon"
 					v-for="control in controls_source"
+					@keypress.enter.prevent
 					:key="control.event"
 					@click="$emit(control.event)">
 					<i :class="`icon icon-${control.icon}`"></i>
@@ -61,9 +62,14 @@ export default {
 				{ event: 'call-dialog', icon: 'upload' }
 			];
 
+			if (this.selected === 1) {
+				controls.push({ event: 'rename', icon: 'edit' });
+			}
 			if (this.selected) {
+				controls.push({ event: 'download-files', icon: 'download' });
 				controls.push({ event: 'remove-files', icon: 'remove' });
 			}
+
 			return controls;
 		},
 	},

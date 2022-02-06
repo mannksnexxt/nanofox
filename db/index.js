@@ -1,7 +1,9 @@
 const { JsonDB } = require('node-json-db');
 const { Config } = require('node-json-db/dist/lib/JsonDBConfig.js');
 
-const DB_PATH = "./db/database.json";
+const path = require('path');
+
+const DB_PATH = path.resolve(__dirname, 'database.json');
 
 const DB = new JsonDB(new Config(DB_PATH, true, true, '/'));
 

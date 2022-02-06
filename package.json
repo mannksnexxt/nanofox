@@ -8,7 +8,8 @@
     "watch": "vite build --watch",
     "preview": "vite preview",
     "e:dev": "nodemon --watch . --exec electron .",
-    "e:start": "electron ."
+    "e:start": "electron .",
+		"e:build": "electron-packager . Nanofox --out=build --overwrite --icon=icon.icns"
   },
   "dependencies": {
     "basic-ftp": "^4.6.6",
@@ -18,6 +19,7 @@
   "devDependencies": {
     "@vitejs/plugin-vue": "^2.0.0",
     "electron": "^16.0.7",
+    "electron-packager": "^15.4.0",
     "nodemon": "^2.0.15",
     "sass": "^1.49.0",
     "vite": "^2.7.2"
