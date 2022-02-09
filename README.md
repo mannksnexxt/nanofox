@@ -1,7 +1,33 @@
-# Vue 3 + Vite
+# Nanofox
+Simple FTP-manager based on Vue 3 and ElectronJS
+### Installation
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+Nanofox requires [Node.js](https://nodejs.org/) v10+ to run.
+Install the dependencies and devDependencies.
+```sh
+yarn
+```
 
-## Recommended IDE Setup
+### Run
+To run locally
+```sh
+yarn build && yarn e:start
+```
+### Development
 
-- [VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=johnsoncodehk.volar)
+To monitor changes and rebuild the project:
+```sh
+yarn build --watch
+yarn e:dev
+```
+
+
+### Building for source
+For production release:
+```sh
+yarn build && yarn e:build
+```
+
+### License
+
+MIT

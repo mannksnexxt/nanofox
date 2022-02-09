@@ -100,16 +100,7 @@ export default {
 			current_tab: 'servers',
 			tabs: ['servers', 'files'],
 			loading: false,
-			servers: [
-				{
-					id: 'kjfkljglkjl',
-					name: 'www.myserver.com',
-					host: '123.232.23.223',
-					user: 'www.myserver.com',
-					password: '1214212',
-					secure: false
-				}
-			],
+			servers: [],
 			connected_server: undefined,
 			popup: {
 				show: false,
@@ -130,19 +121,7 @@ export default {
 					total: 0,
 					transfered: 0
 				},
-				list: [
-					{name: 'temp', type: 2},
-					{name: 'www', type: 2},
-					{name: 'serv', type: 2},
-					{name: 'home', type: 2},
-					{name: 'admin', type: 2},
-					{name: 'index.html', type: 1},
-					{name: 'style.css', type: 1},
-					{name: 'temp.txt', type: 1},
-					{name: 'script.js', type: 1},
-					{name: 'uncnown.un', type: 1},
-					{name: 'image.png', type: 1},
-				],
+				list: [],
 				path: ''
 			}
 		}
@@ -189,9 +168,9 @@ export default {
 			this.loading = true;
 			this.ftp.connecting_to = {...server};
 			
-			this.connected_server = {...server}; ///////
-			this.ftp.path = '/'; ///////
-			this.loading = false; ///////
+			// this.connected_server = {...server}; ///////
+			// this.ftp.path = '/'; ///////
+			// this.loading = false; ///////
 		},
 		onConnected(data) {
 			this.ftp.path = data.pwd;
