@@ -5,4 +5,3 @@ build
 dist-ssr
 *.local
 .vscode
-./db/database.json
